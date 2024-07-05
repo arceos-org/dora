@@ -1,0 +1,53 @@
+---
+dataflow_id: 0190832b-3f3d-7b32-8780-431f621ff6d5
+node_id: rust-node
+run_config:
+  inputs:
+    tick: dora/timer/millis/20
+  outputs:
+    - latency
+    - throughput
+daemon_communication:
+  Tcp:
+    socket_addr: "0.0.0.0:44631"
+dataflow_descriptor:
+  communication:
+    _unstable_local: Tcp
+    _unstable_remote: tcp
+  _unstable_deploy:
+    machine: ~
+  nodes:
+    - id: rust-node
+      name: ~
+      description: ~
+      env: ~
+      _unstable_deploy:
+        machine: ~
+      custom:
+        source: "./target/release/benchmark-example-node"
+        envs: ~
+        build: cargo build -p benchmark-example-node --release
+        inputs:
+          tick: dora/timer/millis/20
+        outputs:
+          - latency
+          - throughput
+      inputs: {}
+      outputs: []
+    - id: rust-sink
+      name: ~
+      description: ~
+      env: ~
+      _unstable_deploy:
+        machine: ~
+      custom:
+        source: "./target/release/benchmark-example-sink"
+        envs: ~
+        build: cargo build -p benchmark-example-sink --release
+        inputs:
+          latency: rust-node/latency
+          throughput: rust-node/throughput
+        outputs: []
+      inputs: {}
+      outputs: []
+dynamic: false

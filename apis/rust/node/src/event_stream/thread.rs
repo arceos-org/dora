@@ -90,11 +90,15 @@ fn event_stream_loop(
             break 'outer Err(err);
         }
 
+        let timestamp = clock.new_timestamp();
+
+        println!("event_stream_loop : {}", timestamp);
+
         let daemon_request = Timestamped {
             inner: DaemonRequest::NextEvent {
                 drop_tokens: std::mem::take(&mut drop_tokens),
             },
-            timestamp: clock.new_timestamp(),
+            timestamp: timestamp,
         };
         let events = match channel.request(&daemon_request) {
             Ok(DaemonReply::NextEvents(events)) => {

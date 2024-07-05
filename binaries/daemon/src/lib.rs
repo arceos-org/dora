@@ -781,6 +781,7 @@ impl Daemon {
                     }
                     Ok(dataflow) => {
                         tracing::debug!("node `{node_id}` is ready");
+                        println!("[TRACE] node `{node_id}` is ready");
                         Self::subscribe(dataflow, node_id.clone(), event_sender, &self.clock).await;
 
                         let status = dataflow

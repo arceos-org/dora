@@ -176,6 +176,8 @@ impl Listener {
             }
         };
 
+        println!("[TRACE] Listener receive_message {:#?}", message);
+
         if let Err(err) = hlc.update_with_timestamp(&message.timestamp) {
             tracing::warn!("failed to update HLC: {err}");
         }
