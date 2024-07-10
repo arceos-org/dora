@@ -11,7 +11,7 @@ use tracing_subscriber::{
     filter::FilterExt, prelude::__tracing_subscriber_SubscriberExt, EnvFilter, Layer,
 };
 
-use eyre::ContextCompat;
+// use eyre::ContextCompat;
 use tracing_subscriber::Registry;
 pub mod telemetry;
 
@@ -48,15 +48,15 @@ pub fn set_up_tracing_opts(name: &str, stdout: bool, filename: Option<&str>) -> 
         layers.push(layer.boxed());
     }
 
-    if let Some(endpoint) = std::env::var_os("DORA_JAEGER_TRACING") {
-        let endpoint = endpoint
-            .to_str()
-            .wrap_err("Could not parse env variable: DORA_JAEGER_TRACING")?;
-        let tracer = crate::telemetry::init_jaeger_tracing(name, endpoint)
-            .wrap_err("Could not instantiate tracing")?;
-        let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
-        layers.push(telemetry.boxed());
-    }
+    // if let Some(endpoint) = std::env::var_os("DORA_JAEGER_TRACING") {
+    //     let endpoint = endpoint
+    //         .to_str()
+    //         .wrap_err("Could not parse env variable: DORA_JAEGER_TRACING")?;
+    //     let tracer = crate::telemetry::init_jaeger_tracing(name, endpoint)
+    //         .wrap_err("Could not instantiate tracing")?;
+    //     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
+    //     layers.push(telemetry.boxed());
+    // }
 
     let registry = Registry::default().with(layers);
     tracing::subscriber::set_global_default(registry).context(format!(

@@ -26,6 +26,7 @@ use std::{
     env::consts::EXE_EXTENSION,
     path::{Path, PathBuf},
     process::Stdio,
+    str::FromStr,
     sync::Arc,
 };
 use tokio::{
@@ -199,9 +200,10 @@ pub async fn spawn_node(
                     conda_env: Some(conda_env),
                 }) = &python_operator.config.source
                 {
-                    let conda = which::which("conda").context(
-                        "failed to find `conda`, yet a `conda_env` was defined. Make sure that `conda` is available.",
-                    )?;
+                    // let conda = which::which("conda").context(
+                    //     "failed to find `conda`, yet a `conda_env` was defined. Make sure that `conda` is available.",
+                    // )?;
+                    let conda = PathBuf::from_str("null")?;
                     let mut command = tokio::process::Command::new(conda);
                     command.args([
                         "run",
