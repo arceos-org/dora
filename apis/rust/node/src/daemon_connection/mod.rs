@@ -4,15 +4,14 @@ use dora_core::{
     message::uhlc::Timestamp,
 };
 use eyre::{bail, eyre, Context};
+#[cfg(feature = "shmem")]
 use shared_memory_server::{ShmemClient, ShmemConf};
-use std::{
-    net::{SocketAddr, TcpStream},
-    time::Duration,
-};
+use std::net::{SocketAddr, TcpStream};
 
 mod tcp;
 
 pub enum DaemonChannel {
+    #[cfg(feature = "shmem")]
     Shmem(ShmemClient<Timestamped<DaemonRequest>, DaemonReply>),
     Tcp(TcpStream),
 }
@@ -25,8 +24,10 @@ impl DaemonChannel {
         Ok(DaemonChannel::Tcp(stream))
     }
 
+    #[cfg(feature = "shmem")]
     #[tracing::instrument(level = "trace")]
     pub unsafe fn new_shmem(daemon_control_region_id: &str) -> eyre::Result<Self> {
+        use std::time::Duration;
         let daemon_events_region = ShmemConf::new()
             .os_id(daemon_control_region_id)
             .open()
@@ -67,6 +68,7 @@ impl DaemonChannel {
 
     pub fn request(&mut self, request: &Timestamped<DaemonRequest>) -> eyre::Result<DaemonReply> {
         match self {
+            #[cfg(feature = "shmem")]
             DaemonChannel::Shmem(client) => client.request(request),
             DaemonChannel::Tcp(stream) => tcp::request(stream, request),
         }
