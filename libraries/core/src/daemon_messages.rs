@@ -26,6 +26,7 @@ pub struct NodeConfig {
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum DaemonCommunication {
+    #[cfg(feature = "shmem")]
     Shmem {
         daemon_control_region_id: SharedMemoryId,
         daemon_drop_region_id: SharedMemoryId,
@@ -113,6 +114,7 @@ impl DaemonRequest {
 #[derive(serde::Serialize, serde::Deserialize, Clone)]
 pub enum DataMessage {
     Vec(AVec<u8, ConstAlign<128>>),
+    #[cfg(feature = "shmem")]
     SharedMemory {
         shared_memory_id: String,
         len: usize,
@@ -124,6 +126,7 @@ impl DataMessage {
     pub fn drop_token(&self) -> Option<DropToken> {
         match self {
             DataMessage::Vec(_) => None,
+            #[cfg(feature = "shmem")]
             DataMessage::SharedMemory { drop_token, .. } => Some(*drop_token),
         }
     }
@@ -136,6 +139,7 @@ impl fmt::Debug for DataMessage {
                 .debug_struct("Vec")
                 .field("len", &v.len())
                 .finish_non_exhaustive(),
+            #[cfg(feature = "shmem")]
             Self::SharedMemory {
                 shared_memory_id,
                 len,
@@ -156,7 +160,9 @@ type SharedMemoryId = String;
 #[must_use]
 pub enum DaemonReply {
     Result(Result<(), String>),
-    PreparedMessage { shared_memory_id: SharedMemoryId },
+    PreparedMessage {
+        shared_memory_id: SharedMemoryId,
+    }, // This field is not used.
     NextEvents(Vec<Timestamped<NodeEvent>>),
     NextDropEvents(Vec<Timestamped<NodeDropEvent>>),
     NodeConfig { result: Result<NodeConfig, String> },
@@ -209,6 +215,7 @@ impl DropToken {
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub enum InputData {
+    #[cfg(feature = "shmem")]
     SharedMemory(SharedMemoryInput),
     Vec(Vec<u8>),
 }
@@ -216,12 +223,14 @@ pub enum InputData {
 impl InputData {
     pub fn drop_token(&self) -> Option<DropToken> {
         match self {
+            #[cfg(feature = "shmem")]
             InputData::SharedMemory(data) => Some(data.drop_token),
             InputData::Vec(_) => None,
         }
     }
 }
 
+#[cfg(feature = "shmem")]
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct SharedMemoryInput {
     pub shared_memory_id: SharedMemoryId,

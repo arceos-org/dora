@@ -1,9 +1,12 @@
 use crate::config::{
     CommunicationConfig, DataId, Input, InputMapping, NodeId, NodeRunConfig, OperatorId,
 };
-use eyre::{bail, eyre, Context, OptionExt, Result};
+#[cfg(not(target_os = "arceos"))]
+use eyre::bail;
+use eyre::{eyre, Context, OptionExt, Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+#[cfg(not(target_os = "arceos"))]
 use serde_with_expand_env::with_expand_envs;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap},
@@ -479,6 +482,7 @@ pub fn source_is_url(source: &str) -> bool {
     source.contains("://")
 }
 
+#[cfg(not(target_os = "arceos"))]
 pub fn resolve_path(source: &str, working_dir: &Path) -> Result<PathBuf> {
     let path = Path::new(&source);
     let path = if path.extension().is_none() {
@@ -541,11 +545,20 @@ pub struct CustomNode {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(untagged)]
 pub enum EnvValue {
-    #[serde(deserialize_with = "with_expand_envs")]
+    #[cfg_attr(
+        not(target_os = "arceos"),
+        serde(deserialize_with = "with_expand_envs")
+    )]
     Bool(bool),
-    #[serde(deserialize_with = "with_expand_envs")]
+    #[cfg_attr(
+        not(target_os = "arceos"),
+        serde(deserialize_with = "with_expand_envs")
+    )]
     Integer(u64),
-    #[serde(deserialize_with = "with_expand_envs")]
+    #[cfg_attr(
+        not(target_os = "arceos"),
+        serde(deserialize_with = "with_expand_envs")
+    )]
     String(String),
 }
 

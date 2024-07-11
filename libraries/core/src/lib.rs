@@ -1,9 +1,11 @@
-use eyre::{bail, eyre, Context};
+use eyre::{bail, eyre};
 use std::{
     env::consts::{DLL_PREFIX, DLL_SUFFIX},
-    ffi::OsStr,
     path::Path,
 };
+
+#[cfg(not(target_os = "arceos"))]
+use {eyre::Context, std::ffi::OsStr};
 
 pub use dora_message as message;
 
@@ -34,6 +36,7 @@ pub fn adjust_shared_library_path(path: &Path) -> Result<std::path::PathBuf, eyr
 
 // Search for python binary.
 // Match `python` for windows and `python3` for other platforms.
+#[cfg(not(target_os = "arceos"))]
 pub fn get_python_path() -> Result<std::path::PathBuf, eyre::ErrReport> {
     let python = if cfg!(windows) {
         which::which("python")
@@ -48,6 +51,7 @@ pub fn get_python_path() -> Result<std::path::PathBuf, eyre::ErrReport> {
 // Search for pip binary.
 // First search for `pip3` as for ubuntu <20, `pip` can resolves to `python2,7 -m pip`
 // Then search for `pip`, this will resolve for windows to python3 -m pip.
+#[cfg(not(target_os = "arceos"))]
 pub fn get_pip_path() -> Result<std::path::PathBuf, eyre::ErrReport> {
     let python = match which::which("pip3") {
         Ok(python) => python,
@@ -58,6 +62,7 @@ pub fn get_pip_path() -> Result<std::path::PathBuf, eyre::ErrReport> {
 }
 
 // Helper function to run a program
+#[cfg(not(target_os = "arceos"))]
 pub async fn run<S>(program: S, args: &[&str], pwd: Option<&Path>) -> eyre::Result<()>
 where
     S: AsRef<OsStr>,

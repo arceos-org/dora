@@ -2,14 +2,20 @@ use crate::{
     adjust_shared_library_path,
     config::{DataId, Input, InputMapping, OperatorId, UserInputMapping},
     descriptor::{self, source_is_url, CoreNodeKind, OperatorSource, EXE_EXTENSION},
-    get_python_path,
 };
 
+#[cfg(not(target_os = "arceos"))]
+use {crate::get_python_path, std::process::Command};
+
 use eyre::{bail, eyre, Context};
-use std::{path::Path, process::Command};
+use std::path::Path;
 use tracing::info;
 
-use super::{resolve_path, Descriptor, DYNAMIC_SOURCE, SHELL_SOURCE};
+#[cfg(not(target_os = "arceos"))]
+use super::resolve_path;
+use super::{Descriptor, DYNAMIC_SOURCE, SHELL_SOURCE};
+
+#[cfg(not(target_os = "arceos"))]
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub fn check_dataflow(
@@ -48,11 +54,13 @@ pub fn check_dataflow(
                             }
                             info!("skipping path check for remote node `{}`", node.id);
                         } else {
+                            #[cfg(not(target_os = "arceos"))]
                             resolve_path(source, working_dir).wrap_err_with(|| {
                                 format!("Could not find source path `{}`", source)
                             })?;
                         }
                     } else {
+                        #[cfg(not(target_os = "arceos"))]
                         resolve_path(source, working_dir)
                             .wrap_err_with(|| format!("Could not find source path `{}`", source))?;
                     };
@@ -122,6 +130,7 @@ pub fn check_dataflow(
     }
 
     if has_python_operator {
+        #[cfg(not(target_os = "arceos"))]
         check_python_runtime()?;
     }
 
@@ -177,6 +186,7 @@ fn check_input(
     Ok(())
 }
 
+#[cfg(not(target_os = "arceos"))]
 fn check_python_runtime() -> eyre::Result<()> {
     // Check if python dora-rs is installed and match cli version
     let reinstall_command =
